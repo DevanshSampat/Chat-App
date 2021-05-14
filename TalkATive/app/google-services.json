@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "806401651546",
+    "project_id": "talk-a-tive-c93ee",
+    "storage_bucket": "talk-a-tive-c93ee.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:806401651546:android:b810575e54fe5e38a5f963",
+        "android_client_info": {
+          "package_name": "com.devansh.talkative"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "806401651546-krkjvvkqguu0djkqb1kk9g14tdintp8n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTFPadmk8_TS8tAsLRY5vdnEMVxjJcVlQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "806401651546-krkjvvkqguu0djkqb1kk9g14tdintp8n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
