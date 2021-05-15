@@ -1,6 +1,7 @@
 package com.devansh.talkative.adapters;
 
 import android.annotation.SuppressLint;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +34,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         holder.date.setVisibility(View.GONE);
         holder.sent_layout.setVisibility(View.GONE);
         holder.received_layout.setVisibility(View.GONE);
+        holder.itemView.findViewById(R.id.seen).setVisibility(View.GONE);
         if(messageData[position].isDateChanged()){
             long time = Long.parseLong(message.substring(message.lastIndexOf(' ')+1));
             Calendar calendar = Calendar.getInstance();
@@ -46,7 +48,10 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             calendar.setTimeInMillis(time);
             message = message.substring(message.indexOf(' ')+1);
             message = message.substring(0,message.lastIndexOf(' '));
+            while (message.startsWith(" ")||message.startsWith("\n")) message = message.substring(1);
+            while (message.endsWith(" ")||message.endsWith("\n")) message = message.substring(0,message.length()-1);
             holder.received_message.setText(message);
+            holder.received_message.setMovementMethod(LinkMovementMethod.getInstance());
             String timeString = "";
             if(calendar.get(Calendar.HOUR_OF_DAY)<10) timeString = timeString + "0";
             timeString = timeString + calendar.get(Calendar.HOUR_OF_DAY) + ":";
@@ -61,13 +66,17 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             calendar.setTimeInMillis(time);
             message = message.substring(message.indexOf(' ')+1);
             message = message.substring(0,message.lastIndexOf(' '));
+            while (message.startsWith(" ")||message.startsWith("\n")) message = message.substring(1);
+            while (message.endsWith(" ")||message.endsWith("\n")) message = message.substring(0,message.length()-1);
             holder.sent_message.setText(message);
+            holder.sent_message.setMovementMethod(LinkMovementMethod.getInstance());
             String timeString = "";
             if(calendar.get(Calendar.HOUR_OF_DAY)<10) timeString = timeString + "0";
             timeString = timeString + calendar.get(Calendar.HOUR_OF_DAY) + ":";
             if(calendar.get(Calendar.MINUTE)<10) timeString = timeString + "0";
             timeString = timeString + calendar.get(Calendar.MINUTE);
             holder.sent_time.setText(timeString);
+            if(position== messageData.length-1&&messageData[position].isSeen()) holder.itemView.findViewById(R.id.seen).setVisibility(View.VISIBLE);
             holder.sent_layout.setVisibility(View.VISIBLE);
         }
     }
@@ -75,6 +84,11 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     @Override
     public int getItemCount() {
         return messageData.length;
+    }
+
+    public void setMessageData(MessageData[] messageData){
+        this.messageData = messageData;
+        notifyDataSetChanged();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

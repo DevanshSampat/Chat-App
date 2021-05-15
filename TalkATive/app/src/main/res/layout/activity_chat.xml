@@ -70,6 +70,7 @@
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:maxLines="5"
             android:backgroundTint="@android:color/transparent"
             android:textSize="18sp"
             android:textColor="@android:color/black"

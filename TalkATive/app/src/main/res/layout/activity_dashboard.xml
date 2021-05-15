@@ -46,12 +46,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/linear_layout"
-        android:layout_above="@id/new_chat"
-        android:id="@+id/all_chats"
-        android:layout_marginVertical="5dp"/>
+        android:id="@+id/all_chats"/>
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/linear_layout"
+        android:layout_margin="10dp"
+        android:id="@+id/progress"
+        android:indeterminateTint="@color/purple_700"/>
     <androidx.cardview.widget.CardView
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_alignParentEnd="true"
         android:id="@+id/new_chat"
         android:layout_alignParentBottom="true"
@@ -59,8 +64,8 @@
         app:cardCornerRadius="30dp"
         app:cardBackgroundColor="@color/purple_700">
         <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_baseline_chat_24"
             android:onClick="startSearch"/>

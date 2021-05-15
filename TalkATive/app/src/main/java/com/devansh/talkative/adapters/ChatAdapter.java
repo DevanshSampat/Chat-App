@@ -29,6 +29,11 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
         this.userId = userId;
     }
 
+    public void setChatData(ChatData[] chatData) {
+        this.chatData = chatData;
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public ChatAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -38,12 +43,27 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ChatAdapter.ViewHolder holder, int position) {
+        holder.setIsRecyclable(false);
+        if(position== chatData.length){
+            holder.itemView.findViewById(R.id.linear_layout).setVisibility(View.INVISIBLE);
+            return;
+        }
         Picasso.with(context).load(chatData[position].getImage()).into(holder.imageView);
         holder.name.setText(chatData[position].getName());
         String message = chatData[position].getMessage();
+        holder.itemView.findViewById(R.id.unread).setVisibility(View.GONE);
+        holder.itemView.findViewById(R.id.seen).setVisibility(View.GONE);
         if(!message.startsWith("outgoing")) holder.itemView.findViewById(R.id.tick).setVisibility(View.GONE);
+        else if(chatData[position].isSeen()){
+            holder.itemView.findViewById(R.id.seen).setVisibility(View.VISIBLE);
+            holder.itemView.findViewById(R.id.tick).setVisibility(View.GONE);
+        }
+        if(chatData[position].isUnread()) holder.itemView.findViewById(R.id.unread).setVisibility(View.VISIBLE);
         message = message.substring(message.indexOf(' ')+1);
-        holder.message.setText(message.substring(0,message.lastIndexOf(' ')).replace('\n',' '));
+        String originalMessage = message.substring(0,message.lastIndexOf(' ')).replace('\n',' ');
+        while (originalMessage.startsWith(" ")||originalMessage.startsWith("\n")) originalMessage = originalMessage.substring(1);
+        while (originalMessage.endsWith(" ")||originalMessage.endsWith("\n")) originalMessage = originalMessage.substring(0,originalMessage.length()-1);
+        holder.message.setText(originalMessage);
         message = message.substring(message.lastIndexOf(' ')+1);
         Calendar calendar = Calendar.getInstance();
         String time = "";
@@ -55,6 +75,9 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
             time = time + calendar.get(Calendar.HOUR_OF_DAY)+":";
             if(calendar.get(Calendar.MINUTE)<10) time = time+"0";
             time = time + calendar.get(Calendar.MINUTE);
+        }
+        else if(calendar.get(Calendar.DAY_OF_YEAR)==actualCalendar.get(Calendar.DAY_OF_YEAR)-1&&calendar.get(Calendar.YEAR)==actualCalendar.get(Calendar.YEAR)){
+            time = "Yesterday";
         }
         else{
             if(calendar.get(Calendar.DAY_OF_MONTH)<10) time = time+"0";
@@ -77,7 +100,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        return chatData.length;
+        return chatData.length + 1;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
