@@ -2,6 +2,7 @@ package com.devansh.talkative.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -17,6 +18,7 @@ import android.widget.Toast;
 
 import com.devansh.talkative.R;
 import com.devansh.talkative.adapters.MessageAdapter;
+import com.devansh.talkative.classes.CurrentUserName;
 import com.devansh.talkative.classes.MessageData;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -40,14 +42,18 @@ public class ChatActivity extends AppCompatActivity {
     private boolean toBeSend;
     private boolean pause;
     private int message_count;
+    private String receiverName;
     private RecyclerView recyclerView;
+    private boolean detailsLoaded;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        NotificationManagerCompat.from(this).cancel(360);
         send = false;
         toBeSend = false;
         pause = false;
+        detailsLoaded = false;
         message_count = 0;
         sender_id = getIntent().getStringExtra("sender_id");
         receiver_id = getIntent().getStringExtra("receiver_id");
@@ -113,8 +119,14 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if(charSequence.toString().trim().length()>0) senderReference.child("messages").child(receiver_id).child("status").setValue("typing");
-                else senderReference.child("messages").child(receiver_id).child("status").setValue("idle");
+                if(charSequence.toString().trim().length()>0) {
+                    senderReference.child("messages").child(receiver_id).child("status").setValue("typing");
+                    receiverReference.child("messages").child(sender_id).child("status_other").setValue("typing");
+                }
+                else {
+                    senderReference.child("messages").child(receiver_id).child("status").setValue("idle");
+                    receiverReference.child("messages").child(sender_id).child("status_other").setValue("idle");
+                }
             }
 
             @Override
@@ -126,6 +138,9 @@ public class ChatActivity extends AppCompatActivity {
             @SuppressLint("SetTextI18n")
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                receiverName = snapshot.child("name").getValue().toString();
+                if(!detailsLoaded) CurrentUserName.setName(receiverName);
+                detailsLoaded = true;
                 senderReference.child("messages").child(receiver_id).child("name").setValue(snapshot.child("name").getValue().toString());
                 senderReference.child("messages").child(receiver_id).child("image").setValue(snapshot.child("image").getValue().toString());
                 Picasso.with(ChatActivity.this).load(snapshot.child("image").getValue().toString()).into((ImageView)findViewById(R.id.profile_image));
@@ -223,6 +238,9 @@ public class ChatActivity extends AppCompatActivity {
                 FirebaseDatabase.getInstance().getReference("users").child(sender_id).child("info").child("status").setValue(time+"");
                 senderReference.child("messages").child(receiver_id).child("last_active").setValue(time+"");
                 receiverReference.child("messages").child(sender_id).child("last_active_other").setValue(time+"");
+                senderReference.child("messages").child(receiver_id).child("status").setValue("idle");
+                receiverReference.child("messages").child(sender_id).child("status_other").setValue("idle");
+                CurrentUserName.setName(null);
             }
 
             @Override
@@ -239,6 +257,7 @@ public class ChatActivity extends AppCompatActivity {
             FirebaseDatabase.getInstance().getReference("users").child(sender_id).child("info").child("status").setValue("Online");
             senderReference.child("messages").child(receiver_id).child("last_active").setValue("online");
             receiverReference.child("messages").child(sender_id).child("last_active_other").setValue("online");
+            CurrentUserName.setName(receiverName);
         } catch (Exception exception) {
             exception.printStackTrace();
         }

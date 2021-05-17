@@ -2,14 +2,20 @@ package com.devansh.talkative.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -22,6 +28,8 @@ import com.devansh.talkative.BuildConfig;
 import com.devansh.talkative.R;
 import com.devansh.talkative.adapters.ChatAdapter;
 import com.devansh.talkative.classes.ChatData;
+import com.devansh.talkative.classes.ChatNotificationService;
+import com.devansh.talkative.classes.ServiceStartingReceiver;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -34,6 +42,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.io.IOException;
 
 public class DashboardActivity extends AppCompatActivity {
 
@@ -44,6 +53,8 @@ public class DashboardActivity extends AppCompatActivity {
     private ChatData[] chatData;
     private GoogleSignInClient mGoogleSignInClient;
     private boolean pause;
+    private boolean goingForSignIn;
+
     @SuppressLint("ResourceAsColor")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +62,18 @@ public class DashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dashboard);
         checkForUpdates();
         pause = false;
+        goingForSignIn = false;
+        NotificationChannel channel = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            channel = new NotificationChannel("general",
+                    "General", NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("All chats here");
+            getSystemService(NotificationManager.class).createNotificationChannel(channel);
+            channel = new NotificationChannel("service",
+                    "Service Notifications", NotificationManager.IMPORTANCE_NONE);
+            channel.setDescription("Services show up here");
+            getSystemService(NotificationManager.class).createNotificationChannel(channel);
+        }
         GoogleSignInOptions gso = new GoogleSignInOptions
                 .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.client_id))
@@ -61,6 +84,16 @@ public class DashboardActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
         userId = getIntent().getStringExtra("user_id");
+        if(!new File(getFilesDir(),"Service.txt").exists()){
+            try{
+                new File(getFilesDir(),"Service.txt").createNewFile();
+                AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+                alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+                        PendingIntent.getBroadcast(this,108,new Intent(this, ServiceStartingReceiver.class),PendingIntent.FLAG_UPDATE_CURRENT));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         FirebaseDatabase.getInstance().getReference("users").child(getIntent().getStringExtra("user_id")).child("messages").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -70,6 +103,10 @@ public class DashboardActivity extends AppCompatActivity {
                 } catch (Exception exception) {
                     return;
                 }
+                Intent intent = new Intent(getApplicationContext(), ChatNotificationService.class);
+                intent.putExtra("user_id",userId);
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O) startForegroundService(intent);
+                else startService(intent);
                 for(DataSnapshot dataSnapshot : snapshot.getChildren()){
                     try{
                         int count = Integer.parseInt(dataSnapshot.child("count").getValue().toString());
@@ -85,6 +122,14 @@ public class DashboardActivity extends AppCompatActivity {
                         chatData[temp_count] = new ChatData(dataSnapshot.child("name").getValue().toString(), dataSnapshot.child("image").getValue().toString(),
                                 dataSnapshot.getKey(), message);
                         try{
+                            if(dataSnapshot.child("status_other").getValue().toString().equals("typing")){
+                                message = "incoming Typing..."+message.substring(message.lastIndexOf(' '));
+                                chatData[temp_count].setMessage(message);
+                            }
+                        } catch (Exception exception) {
+
+                        }
+                        try{
                             long t1 = Long.parseLong(dataSnapshot.child("last_active").getValue().toString());
                             long t2 = Long.parseLong(message.substring(message.lastIndexOf(' ')+1));
                             if(t2>t1&&message.startsWith("incoming")) chatData[temp_count].setUnread(true);
@@ -99,15 +144,19 @@ public class DashboardActivity extends AppCompatActivity {
 
                     }
                 }
-                for(int i=0;i< chatData.length-1;i++){
-                    for(int j=0;j< chatData.length-1-i;j++){
-                        long t1,t2;
-                        t1 = Long.parseLong(chatData[j].getMessage().substring(chatData[j].getMessage().lastIndexOf(' ')+1));
-                        t2 = Long.parseLong(chatData[j+1].getMessage().substring(chatData[j+1].getMessage().lastIndexOf(' ')+1));
-                        if(t2>t1){
-                            ChatData tempData = chatData[j];
-                            chatData[j] = chatData[j+1];
-                            chatData[j+1] = tempData;
+                for(int i=0;i< chatData.length-1;i++) {
+                    for (int j = 0; j < chatData.length - 1 - i; j++) {
+                        long t1, t2;
+                        try {
+                            t1 = Long.parseLong(chatData[j].getMessage().substring(chatData[j].getMessage().lastIndexOf(' ') + 1));
+                            t2 = Long.parseLong(chatData[j + 1].getMessage().substring(chatData[j + 1].getMessage().lastIndexOf(' ') + 1));
+                            if (t2 > t1) {
+                                ChatData tempData = chatData[j];
+                                chatData[j] = chatData[j + 1];
+                                chatData[j + 1] = tempData;
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
                     }
                 }
@@ -121,11 +170,21 @@ public class DashboardActivity extends AppCompatActivity {
             }
         });
         try {
-            FirebaseDatabase.getInstance().getReference("users").child(userId).child("info").child("image").addValueEventListener(new ValueEventListener() {
+            FirebaseDatabase.getInstance().getReference("users").child(userId).child("info").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     try{
-                        Picasso.with(DashboardActivity.this).load(snapshot.getValue().toString()).into((ImageView)findViewById(R.id.profile_image));
+                        if(goingForSignIn) return;
+                        Picasso.with(DashboardActivity.this).load(snapshot.child("image").getValue().toString()).into((ImageView)findViewById(R.id.profile_image));
+                        long time = Long.parseLong(snapshot.child("sign_in_time").getValue().toString());
+                        if(time+ AlarmManager.INTERVAL_DAY<System.currentTimeMillis()){
+                            goingForSignIn = true;
+                            new File(getApplicationContext().getFilesDir(),"UserId.txt").delete();
+                            finish();
+                            stopService(new Intent(getApplicationContext(),ChatNotificationService.class));
+                            NotificationManagerCompat.from(getApplicationContext()).cancel(360);
+                            startActivity(new Intent(getApplicationContext(),MainActivity.class));
+                        }
                     } catch (Exception exception) {
 
                     }
@@ -145,6 +204,9 @@ public class DashboardActivity extends AppCompatActivity {
         FirebaseDatabase.getInstance().getReference("app_info").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Uri updateFileUri = FileProvider.getUriForFile(getApplicationContext(),BuildConfig.APPLICATION_ID+".provider",
+                        new File(getApplicationContext().getExternalFilesDir(null),"update.apk"));
+                getContentResolver().delete(updateFileUri,null,null);
                 if(BuildConfig.VERSION_CODE<Integer.parseInt(snapshot.child("version_code").getValue().toString())){
                     Intent intent = new Intent(getApplicationContext(),UpdaterActivity.class);
                     intent.putExtra("name",snapshot.child("version_name").getValue().toString());
@@ -152,11 +214,6 @@ public class DashboardActivity extends AppCompatActivity {
                     intent.putExtra("info",snapshot.child("info").getValue().toString());
                     startActivity(intent);
                     finish();
-                }
-                else{
-                    Uri updateFileUri = FileProvider.getUriForFile(getApplicationContext(),BuildConfig.APPLICATION_ID+".provider",
-                            new File(getApplicationContext().getExternalFilesDir(null),"update.apk"));
-                    getContentResolver().delete(updateFileUri,null,null);
                 }
             }
 
@@ -196,7 +253,10 @@ public class DashboardActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<Void> task) {
                         if(!task.isSuccessful()) return;
                         Toast.makeText(getApplicationContext(), "Signed out successfully", Toast.LENGTH_SHORT).show();
+                        new File(getApplicationContext().getFilesDir(),"UserId.txt").delete();
                         finish();
+                        stopService(new Intent(getApplicationContext(),ChatNotificationService.class));
+                        NotificationManagerCompat.from(getApplicationContext()).cancel(360);
                     }
                 });
     }

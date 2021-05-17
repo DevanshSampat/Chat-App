@@ -32,6 +32,14 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 public class MainActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 1008;
     private FirebaseAuth mAuth;
@@ -53,6 +61,17 @@ public class MainActivity extends AppCompatActivity {
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this,gso);
+        try {
+            FileInputStream fis = openFileInput("UserId.txt");
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));
+            startActivity(new Intent(this,DashboardActivity.class).putExtra("user_id",bufferedReader.readLine()));
+            finish();
+            return;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         signInWithGoogle(new View(this));
     }
 
@@ -103,6 +122,22 @@ public class MainActivity extends AppCompatActivity {
                             } catch (Exception exception) {
                             }
                             startActivity(new Intent(MainActivity.this,DashboardActivity.class).putExtra("user_id",user.getUid()));
+                            finish();
+                            if(!new File(getApplicationContext().getFilesDir(),"UserId.txt").exists()) {
+                                try {
+                                    new File(getApplicationContext().getFilesDir(),"UserId.txt").createNewFile();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            try {
+                                FileOutputStream fos = getApplicationContext().openFileOutput("UserId.txt",MODE_PRIVATE);
+                                fos.write((user.getUid()+"\n").getBytes());
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         } else {
                             // If sign in fails, display a message to the user.
                             Toast.makeText(getApplicationContext(),"Failed to sign in",Toast.LENGTH_SHORT).show();

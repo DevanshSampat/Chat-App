@@ -3,8 +3,12 @@
     package="com.devansh.talkative">
 
     <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -12,7 +16,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TalkATive">
-        <activity android:name=".activities.UpdaterActivity"></activity>
+        <receiver
+            android:name=".classes.ServiceStartingReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.UpdaterActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activities.ChatActivity"
             android:screenOrientation="portrait" />
@@ -21,6 +32,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".activities.DashboardActivity"
+            android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.TalkATive" />
         <activity
@@ -33,6 +45,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.devansh.talkative.provider"
@@ -42,6 +55,22 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_path" />
         </provider>
+
+        <service
+            android:name=".classes.ChatNotificationService"
+            android:enabled="true" />
+
+        <receiver
+            android:name=".classes.BootReceiver"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".classes.OpenChatReceiver" />
+        <receiver android:name=".classes.DirectReplyReceiver" />
+        <receiver android:name=".classes.MarkReadReceiver" />
     </application>
 
 </manifest>
