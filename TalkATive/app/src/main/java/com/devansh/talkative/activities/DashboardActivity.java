@@ -2,6 +2,7 @@ package com.devansh.talkative.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -70,7 +71,12 @@ public class DashboardActivity extends AppCompatActivity {
             channel.setDescription("All chats here");
             getSystemService(NotificationManager.class).createNotificationChannel(channel);
             channel = new NotificationChannel("service",
-                    "Service Notifications", NotificationManager.IMPORTANCE_NONE);
+                    "Service Notifications", NotificationManager.IMPORTANCE_LOW);
+            channel.setLockscreenVisibility(NotificationCompat.VISIBILITY_SECRET);
+            channel.setShowBadge(false);
+            channel.setSound(null,null);
+            channel.enableLights(false);
+            channel.enableVibration(false);
             channel.setDescription("Services show up here");
             getSystemService(NotificationManager.class).createNotificationChannel(channel);
         }

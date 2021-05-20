@@ -48,6 +48,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
             holder.itemView.findViewById(R.id.linear_layout).setVisibility(View.INVISIBLE);
             return;
         }
+        if(chatData == null) return;
         Picasso.with(context).load(chatData[position].getImage()).into(holder.imageView);
         holder.name.setText(chatData[position].getName());
         String message = chatData[position].getMessage();

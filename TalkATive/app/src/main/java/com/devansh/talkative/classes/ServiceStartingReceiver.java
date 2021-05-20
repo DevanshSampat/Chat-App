@@ -20,9 +20,9 @@ public class ServiceStartingReceiver extends BroadcastReceiver {
             BufferedReader br = new BufferedReader(new InputStreamReader(fis));
             Intent serviceIntent = new Intent(context,ChatNotificationService.class);
             serviceIntent.putExtra("user_id",br.readLine());
-            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O) context.startForegroundService(serviceIntent);
-            else context.startService(serviceIntent);
-        } catch (FileNotFoundException e) {
+                    if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O) context.startForegroundService(serviceIntent);
+                    else context.startService(serviceIntent);
+         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();

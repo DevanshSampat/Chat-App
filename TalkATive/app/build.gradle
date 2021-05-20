@@ -11,9 +11,8 @@ android {
         applicationId "com.devansh.talkative"
         minSdkVersion 24
         targetSdkVersion 30
-        versionCode 20210517
-        versionName "21.5.17"
-
+        versionCode 20210520
+        versionName "21.5.20"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
