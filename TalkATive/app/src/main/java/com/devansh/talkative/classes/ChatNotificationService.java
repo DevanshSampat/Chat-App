@@ -320,9 +320,10 @@ public class ChatNotificationService extends Service {
                                 ShortcutInfo shortcutInfo = null;
                                 NotificationCompat.BubbleMetadata bubbleMetadata = null;
                                 if(shortcutBitmap!=null&&Build.VERSION.SDK_INT>=Build.VERSION_CODES.R){
-                                    shortcutInfo = new ShortcutInfo.Builder(getApplicationContext(),"shortcut"+id)
+                                    shortcutInfo = new ShortcutInfo.Builder(getApplicationContext(),"shortcut"+title.trim())
                                             .setPerson(new android.app.Person.Builder().setName(title)
                                                     .setIcon(Icon.createWithBitmap(shortcutBitmap)).build())
+                                            .setIcon(Icon.createWithBitmap(circularBitmap(shortcutBitmap)))
                                             .setShortLabel(title)
                                             .setIntent(chatIntent.setAction(Intent.ACTION_MAIN))
                                             .setLongLived(true)
@@ -341,8 +342,8 @@ public class ChatNotificationService extends Service {
                                         .addAction(replyAction)
                                         .addAction(markReadAction)
                                         .setContentIntent(pendingIntentForChat);
-                                if(shortcutInfo!=null&&Build.VERSION.SDK_INT>=Build.VERSION_CODES.R){
-                                    singleChatNotification.setShortcutId("shortcut"+id);
+                                if(shortcutInfo!=null){
+                                    singleChatNotification.setShortcutId("shortcut"+title.trim());
                                 }
                                 NotificationManagerCompat.from(getApplicationContext()).notify(id, singleChatNotification.build());
                                 inboxStyle.addLine(title + " " + str.substring(0, str.indexOf('\n')));

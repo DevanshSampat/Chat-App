@@ -14,6 +14,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.pm.ShortcutManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -100,6 +101,10 @@ public class DashboardActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+        Intent intent = new Intent(getApplicationContext(), ChatNotificationService.class);
+        intent.putExtra("user_id",userId);
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O) startForegroundService(intent);
+        else startService(intent);
         FirebaseDatabase.getInstance().getReference("users").child(getIntent().getStringExtra("user_id")).child("messages").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -109,10 +114,6 @@ public class DashboardActivity extends AppCompatActivity {
                 } catch (Exception exception) {
                     return;
                 }
-                Intent intent = new Intent(getApplicationContext(), ChatNotificationService.class);
-                intent.putExtra("user_id",userId);
-                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O) startForegroundService(intent);
-                else startService(intent);
                 for(DataSnapshot dataSnapshot : snapshot.getChildren()){
                     try{
                         int count = Integer.parseInt(dataSnapshot.child("count").getValue().toString());
@@ -263,6 +264,9 @@ public class DashboardActivity extends AppCompatActivity {
                         finish();
                         stopService(new Intent(getApplicationContext(),ChatNotificationService.class));
                         NotificationManagerCompat.from(getApplicationContext()).cancel(360);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+                            ((ShortcutManager)getSystemService(SHORTCUT_SERVICE)).removeAllDynamicShortcuts();
+                        }
                     }
                 });
     }
