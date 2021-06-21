@@ -26,27 +26,33 @@
 
         <activity
             android:name=".activities.UpdaterActivity"
+            tools:ignore="LockedOrientationActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".activities.ChatActivity"
+            tools:ignore="LockedOrientationActivity"
             android:screenOrientation="portrait"
             android:allowEmbedded="true"
             android:resizeableActivity="true"/>
         <activity
             android:name=".activities.SearchUserActivity"
+            tools:ignore="LockedOrientationActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".activities.DashboardActivity"
             android:launchMode="singleTask"
+            tools:ignore="LockedOrientationActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.TalkATive" />
         <activity
             android:name=".activities.MainActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="OPEN_TALKATIVE"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

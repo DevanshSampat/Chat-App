@@ -64,9 +64,11 @@ public class MainActivity extends AppCompatActivity {
         try {
             FileInputStream fis = openFileInput("UserId.txt");
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));
-            startActivity(new Intent(this,DashboardActivity.class).putExtra("user_id",bufferedReader.readLine()));
-            finish();
-            return;
+            if(!getIntent().hasExtra("email_id")){
+                startActivity(new Intent(this,DashboardActivity.class).putExtra("user_id",bufferedReader.readLine()));
+                finish();
+                return;
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -121,7 +123,10 @@ public class MainActivity extends AppCompatActivity {
                                 reference.child("image").setValue(user.getPhotoUrl().toString());
                             } catch (Exception exception) {
                             }
-                            startActivity(new Intent(MainActivity.this,DashboardActivity.class).putExtra("user_id",user.getUid()));
+                            Intent intent = new Intent(MainActivity.this,DashboardActivity.class);
+                            intent.putExtra("user_id",user.getUid());
+                            if(getIntent().hasExtra("email_id")) intent.putExtra("email_id",getIntent().getStringExtra("email_id"));
+                            startActivity(intent);
                             finish();
                             if(!new File(getApplicationContext().getFilesDir(),"UserId.txt").exists()) {
                                 try {

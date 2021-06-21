@@ -62,6 +62,13 @@ public class DashboardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+        if(getIntent().hasExtra("email_id")){
+            Intent intent = new Intent(this,SearchUserActivity.class);
+            intent.putExtra("email_id",getIntent().getStringExtra("email_id"));
+            intent.putExtra("user_id",getIntent().getStringExtra("user_id"));
+            startActivity(intent);
+            finish();
+        }
         checkForUpdates();
         pause = false;
         goingForSignIn = false;

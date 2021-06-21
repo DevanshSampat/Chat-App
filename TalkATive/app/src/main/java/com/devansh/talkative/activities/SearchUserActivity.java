@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -46,6 +47,13 @@ public class SearchUserActivity extends AppCompatActivity {
                 for(i=0;i< userData.length;i++){
                     if(userData[i].getName().toLowerCase().trim().contains(query)
                             || userData[i].getEmail().toLowerCase().trim().contains(query)) j++;
+                    if(getIntent().hasExtra("email_id")&&getIntent().getStringExtra("email_id").equals(userData[i].getEmail())){
+                        Intent chatIntent = new Intent(SearchUserActivity.this,ChatActivity.class);
+                        chatIntent.putExtra("sender_id",getIntent().getStringExtra("user_id"));
+                        chatIntent.putExtra("receiver_id",userData[i].getUid());
+                        startActivity(chatIntent);
+                        finish();
+                    }
                 }
                 UserData[] tempData = new UserData[j];
                 j=0;
@@ -58,7 +66,6 @@ public class SearchUserActivity extends AppCompatActivity {
                 }
                 recyclerView.setAdapter(new UserAdapter(tempData,getIntent().getStringExtra("user_id")));
             }
-
             @Override
             public void afterTextChanged(Editable editable) {
 
@@ -90,6 +97,7 @@ public class SearchUserActivity extends AppCompatActivity {
                 recyclerView.setAdapter(new UserAdapter(userData,getIntent().getStringExtra("user_id")));
                 isListLoaded = true;
                 findViewById(R.id.progress).setVisibility(View.GONE);
+                if(getIntent().hasExtra("email_id")) searchText.setText(getIntent().getStringExtra("email_id"));
             }
 
             @Override
