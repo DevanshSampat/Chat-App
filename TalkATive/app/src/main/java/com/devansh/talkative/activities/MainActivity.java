@@ -64,11 +64,12 @@ public class MainActivity extends AppCompatActivity {
         try {
             FileInputStream fis = openFileInput("UserId.txt");
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));
-            if(!getIntent().hasExtra("email_id")){
-                startActivity(new Intent(this,DashboardActivity.class).putExtra("user_id",bufferedReader.readLine()));
+            Intent intent = new Intent(getApplicationContext(),DashboardActivity.class);
+            intent.putExtra("user_id",bufferedReader.readLine());
+            if(getIntent().hasExtra("email_id")) intent.putExtra("email_id",getIntent().getStringExtra("email_id"));
+            startActivity(intent);
                 finish();
                 return;
-            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

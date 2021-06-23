@@ -191,7 +191,7 @@ public class DashboardActivity extends AppCompatActivity {
                         if(goingForSignIn) return;
                         Picasso.with(DashboardActivity.this).load(snapshot.child("image").getValue().toString()).into((ImageView)findViewById(R.id.profile_image));
                         long time = Long.parseLong(snapshot.child("sign_in_time").getValue().toString());
-                        if(time+ AlarmManager.INTERVAL_DAY<System.currentTimeMillis()){
+                        if(time+ AlarmManager.INTERVAL_DAY<System.currentTimeMillis()&&!getIntent().hasExtra("email_id")){
                             goingForSignIn = true;
                             new File(getApplicationContext().getFilesDir(),"UserId.txt").delete();
                             finish();
