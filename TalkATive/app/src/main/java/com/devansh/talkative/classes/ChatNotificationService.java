@@ -185,7 +185,7 @@ public class ChatNotificationService extends Service {
                             }
                         }
                         if (list.size() == 0) {
-                            NotificationManagerCompat.from(getApplicationContext()).cancel(360);
+                            //NotificationManagerCompat.from(getApplicationContext()).cancel(360);
                         }
                         if (list.size() > 0) {
                             int i, j;
@@ -309,6 +309,7 @@ public class ChatNotificationService extends Service {
                                 chatIntent.putExtra("sender_id", intent.getStringExtra("user_id"));
                                 chatIntent.putExtra("receiver_id", names_id.get(title));
                                 PendingIntent pendingIntentForChat = PendingIntent.getActivity(getApplicationContext(), id, chatIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                PendingIntent pendingIntentForChatBubble = PendingIntent.getActivity(getApplicationContext(), 10*id, chatIntent.putExtra("no dismiss",true), PendingIntent.FLAG_UPDATE_CURRENT);
                                 String lastMessage = sortedString[i][sortedString[i].length - 2];
                                 lastMessage = lastMessage.substring(lastMessage.indexOf(':') + 2, lastMessage.lastIndexOf(' '));
                                 lastMessage = lastMessage.replace('\n', ' ');
@@ -328,6 +329,13 @@ public class ChatNotificationService extends Service {
                                             .setIntent(chatIntent.setAction(Intent.ACTION_MAIN))
                                             .setLongLived(true)
                                             .build();
+                                    bubbleMetadata = new NotificationCompat.BubbleMetadata.Builder()
+                                            .setIntent(pendingIntentForChatBubble)
+                                            .setDeleteIntent(PendingIntent.getBroadcast(getApplicationContext(),11*id,
+                                                    new Intent(getApplicationContext(),TurnOffChatReceiver.class)
+                                                            .putExtra("sender_id",user_id)
+                                                            .putExtra("receiver_id",names_id.get(title)),PendingIntent.FLAG_UPDATE_CURRENT))
+                                            .setIcon(IconCompat.createFromIcon(Icon.createWithAdaptiveBitmap(shortcutBitmap))).setDesiredHeight(600).build();
                                     ((ShortcutManager)getApplicationContext().getSystemService(SHORTCUT_SERVICE)).pushDynamicShortcut(shortcutInfo);
                                 }
                                 NotificationCompat.Builder singleChatNotification = new NotificationCompat.Builder(getApplicationContext(), "general")
@@ -344,6 +352,7 @@ public class ChatNotificationService extends Service {
                                         .setContentIntent(pendingIntentForChat);
                                 if(shortcutInfo!=null){
                                     singleChatNotification.setShortcutId("shortcut"+title.trim());
+                                    singleChatNotification.setBubbleMetadata(bubbleMetadata);
                                 }
                                 NotificationManagerCompat.from(getApplicationContext()).notify(id, singleChatNotification.build());
                                 inboxStyle.addLine(title + " " + str.substring(0, str.indexOf('\n')));

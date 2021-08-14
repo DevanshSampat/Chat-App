@@ -77,6 +77,7 @@ public class DashboardActivity extends AppCompatActivity {
             channel = new NotificationChannel("general",
                     "General", NotificationManager.IMPORTANCE_HIGH);
             channel.setDescription("All chats here");
+            channel.setAllowBubbles(true);
             getSystemService(NotificationManager.class).createNotificationChannel(channel);
             channel = new NotificationChannel("service",
                     "Service Notifications", NotificationManager.IMPORTANCE_LOW);
